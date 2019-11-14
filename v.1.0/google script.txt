@@ -1,0 +1,79 @@
+// Orginal
+//BY: Akshaya Niraula
+// ON: 2016 November 12th.
+// AT: http://www.embedded-lab.com/.....
+ 
+// This version
+// M.Dudek mr.m.dudek@gmail.com
+// ver. 1.1 
+// 10.11.2019
+ 
+
+// This method will be called first or hits first  
+function doGet(e){
+  Logger.log("--- doGet ---");
+ 
+ var temp = "",
+     hum = "",
+     tempDS = ""   ;
+ 
+  try {
+ 
+    // this helps during debuggin
+    if (e == null){e={}; e.parameters = {tDHT:"test",hDHT:"test",hDS:"test"};}
+ 
+    temp = e.parameters.tDHT;
+    hum = e.parameters.hDHT;
+    tempDS = e.parameters.tDS;
+ 
+    // save the data to spreadsheet
+    save_data(temp, hum,tempDS);
+  
+    return ContentService.createTextOutput("Wrote:\n  tDHT: " + temp + "\n  hDHT: " + hum + "\n  tDS: " + tempDS);
+ 
+  } catch(error) { 
+    Logger.log(error);    
+    return ContentService.createTextOutput("error");
+  }  
+}
+ 
+// Method to save given data to a sheet
+function save_data(temp,hum,tempDS){
+  Logger.log("--- save_data ---"); 
+ 
+   try 
+   {
+     var dateTime = new Date();
+     
+     // Paste the URL of the Google Sheets starting from https thru /edit
+     // For e.g.: https://docs.google.com/..../edit 
+     var ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/====Your GS here ======/edit");
+     var summarySheet = ss.getSheetByName("Summary");
+     var dataLoggerSheet = ss.getSheetByName("DataLogger");
+          
+     // Get last edited row from DataLogger sheet
+     var row = dataLoggerSheet.getLastRow() + 1;
+     var old_time = summarySheet.getDataRange().getValues();
+          
+     // Start Populating the data
+     dataLoggerSheet.getRange("A" + row).setValue(row -1); // ID
+     dataLoggerSheet.getRange("B" + row).setValue(dateTime); // dateTime
+     dataLoggerSheet.getRange("C" + row).setValue(temp); // temp
+     dataLoggerSheet.getRange("D" + row).setValue(hum); // hum
+     dataLoggerSheet.getRange("E" + row).setValue(tempDS); // temp DS
+      
+     // Update summary sheet
+     summarySheet.getRange("B1").setValue(dateTime); // Last modified date
+    
+     // save time beetween
+     dataLoggerSheet.getRange("F" + row).setValue((dateTime-old_time[0][1])); // dateTime
+             
+  }
+ 
+  catch(error) 
+  {
+    Logger.log(JSON.stringify(error));
+  }
+ 
+  Logger.log("--- save_data end---"); 
+}
